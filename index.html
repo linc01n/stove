@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -15,17 +16,18 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1>Stove</h1>
-        <p>A utility for packaging and releasing Chef cookbooks</p>
-
-        <p class="view"><a href="https://github.com/sethvargo/stove">View the Project on GitHub <small>sethvargo/stove</small></a></p>
-
+        <h1 class="header">Stove</h1>
+        <p class="header">A utility for packaging and releasing Chef cookbooks</p>
 
         <ul>
-          <li><a href="https://github.com/sethvargo/stove/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/sethvargo/stove/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/sethvargo/stove">View On <strong>GitHub</strong></a></li>
+          <li class="download"><a class="buttons" href="https://github.com/sethvargo/stove/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/sethvargo/stove/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/sethvargo/stove">View On GitHub</a></li>
         </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/sethvargo">sethvargo</a></p>
+
+
       </header>
       <section>
         <h1>
@@ -40,102 +42,66 @@
 <p>A utility for releasing and managing Chef Cookbooks. It will:</p>
 
 <ul>
-<li>Edit the <code>metadata.rb</code> and insert the proper version</li>
-<li>Create a CHANGELOG from JIRA tickets</li>
-<li>Commit and push these changes to git</li>
-<li>Create a git tag and push those changes to git</li>
-<li>Publish a release to GitHub releases</li>
-<li>Upload the cookbook to the Opscode Community Site</li>
-<li>Resolve (close) the JIRA tickets</li>
+<li>Tag and push a new release to git</li>
+<li>Upload the cookbook to a cookbook share (such as Supermarket)</li>
 </ul><h2>
 <a name="why" class="anchor" href="#why"><span class="octicon octicon-link"></span></a>Why?</h2>
 
-<p>Existing tools to package cookbooks (such as <a href="https://github.com/miketheman/knife-community">Knife Community</a> and <code>knife cookbook site share</code>) require a dependency on Chef. Because of thier dependency on Chef, they enforce the use of a "cookbook repo". Especially with the evolution of <a href="https://github.com/RiotGames/berkshelf">Berkshelf</a>, cookbooks are individualized artifacts and are often contained in their own repositories. <a href="https://github.com/sethvargo/stove">stove</a> is <strong>cookbook-centric, rather than Chef-centric</strong>. Since all commands are run from inside the cookbook, it's safe to include stove in your cookbooks <code>Gemfile</code>.</p>
+<p>Existing tools to package cookbooks (such as <a href="https://github.com/miketheman/knife-community">Knife Community</a> and <code>knife cookbook site share</code>) require a dependency on Chef. Because of thier dependency on Chef, they enforce the use of a "cookbook repo". Especially with the evolution of <a href="https://github.com/RiotGames/berkshelf">Berkshelf</a>, cookbooks are individualized artifacts and are often contained in their own repositories. <a href="https://github.com/sethvargo/stove">stove</a> is <strong>cookbook-centric, rather than Chef-centric</strong>.</p>
 
 <h2>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-<p>Install stove as a gem:</p>
+<ol>
+<li>
+<p>Add Stove to your project's Gemfile:</p>
 
-<pre><code>$ gem install stove
+<pre><code>gem 'stove'
 </code></pre>
+</li>
+<li>
+<p>Run the <code>bundle</code> command to install:</p>
 
-<p>The use of some plugins (such as GitHub and JIRA) require a Stove configuration file. The Stove config is a JSON file stored at <code>~/.stove</code> on your local hard drive. The schema looks like this:</p>
+<pre><code>$ bundle install --binstubs
+</code></pre>
+</li>
+</ol><h2>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h2>
 
-<div class="highlight highlight-javascript"><pre><span class="p">{</span>
-  <span class="s2">"field"</span><span class="o">:</span> <span class="p">{</span>
-    <span class="s2">"option"</span><span class="o">:</span> <span class="s2">"value"</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<p>Stove requires your username and private key to upload a cookbook. You can pass these to each command call, or you can set them Stove:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>stove login --username sethvargo --key ~/.chef/sethvargo.pem
 </pre></div>
 
-<p>For example, my local Stove configuration looks like this:</p>
-
-<div class="highlight highlight-javascript"><pre><span class="p">{</span>
-  <span class="s2">"community"</span><span class="o">:</span> <span class="p">{</span>
-    <span class="s2">"username"</span><span class="o">:</span> <span class="s2">"sethvargo"</span><span class="p">,</span>
-    <span class="s2">"key"</span><span class="o">:</span> <span class="s2">"~/.chef/sethvargo.pem"</span>
-  <span class="p">},</span>
-  <span class="s2">"github"</span><span class="o">:</span> <span class="p">{</span>
-    <span class="s2">"access_token"</span><span class="o">:</span> <span class="s2">"..."</span>
-  <span class="p">},</span>
-  <span class="s2">"jira"</span><span class="o">:</span> <span class="p">{</span>
-    <span class="s2">"username"</span><span class="o">:</span> <span class="s2">"sethvargo"</span><span class="p">,</span>
-    <span class="s2">"password"</span><span class="o">:</span> <span class="s2">"..."</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>If you are using Stove 1.0, you need to update your configuration file syntax.</p>
-
-<p><strong>It is recommended that the permissions on this file be 0600 to prevent unauthorized reading!</strong></p>
+<p>These values will be saved in Stove's configuration file and persisted across your workstation.</p>
 
 <h2>
 <a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
 
-<p>The gem is packaged as a binary. It should be run from <em>inside the cookbook to release</em>:</p>
+<p>There are two ways to use Stove. You can either use the <code>stove</code> command directly or use the embedded rake task.</p>
 
-<pre><code>(~/cookbooks/bacon) $ bake 1.2.3
-</code></pre>
+<h3>
+<a name="command" class="anchor" href="#command"><span class="octicon octicon-link"></span></a>Command</h3>
 
-<p>You can always use the <code>--help</code> flag to get information:</p>
+<p>Execute the <code>stove</code> command from inside the root of a cookbook:</p>
 
-<div class="highlight highlight-text"><pre>Usage: bake x.y.z
-
-Actions:
-        --[no-]bump                  [Don't] Perform a version bump the local version automatically
-        --[no-]changelog             [Don't] Generate and prompt for a CHANGELOG
-        --[no-]dev                   [Don't] Bump a minor version release for development purposes
-        --[no-]upload                [Don't] Execute upload stages of enabled plugins
-
-Plugins:
-        --[no-]community             [Don't] Upload to the community site
-        --[no-]git                   [Don't] Tag and push to a git remote
-        --[no-]github                [Don't] Publish the release to GitHub
-        --[no-]jira                  [Don't] Resolve JIRA issues
-
-Global Options:
-        --locale [LANGUAGE]          Change the language to output messages
-        --log-level [LEVEL]          Set the log verbosity
-        --category [CATEGORY]        Set category for the cookbook
-        --path [PATH]                Change the path to a cookbook
-        --remote [REMOTE]            The name of the git remote to push to
-        --branch [BRANCH]            The name of the git branch to push to
-    -h, --help                       Show this message
-    -v, --version                    Show version
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>bin/stove
 </pre></div>
 
-<h2>
-<a name="rake-task" class="anchor" href="#rake-task"><span class="octicon octicon-link"></span></a>Rake Task</h2>
+<p>This will package (as a tarball) the cookbook in the current working directory, tag a new version, push to git, and publish to a cookbook share.</p>
 
-<p>Stove also includes a Rake task you can include in your Rakefile:</p>
+<h3>
+<a name="rake-task" class="anchor" href="#rake-task"><span class="octicon octicon-link"></span></a>Rake task</h3>
+
+<p>If you are familiar with the Bundler approach to publishing Ruby gems, this approach will feel very familiar. Simply add the following to your <code>Rakefile</code>:</p>
 
 <div class="highlight highlight-ruby"><pre><span class="nb">require</span> <span class="s1">'stove/rake_task'</span>
+<span class="no">Stove</span><span class="o">::</span><span class="no">RakeTask</span><span class="o">.</span><span class="n">new</span>
+</pre></div>
 
-<span class="no">Stove</span><span class="o">::</span><span class="no">RakeTask</span><span class="o">.</span><span class="n">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">stove</span><span class="o">|</span>
-  <span class="n">stove</span><span class="o">.</span><span class="n">git</span> <span class="o">=</span> <span class="kp">true</span>
-  <span class="n">stove</span><span class="o">.</span><span class="n">devodd</span> <span class="o">=</span> <span class="kp">true</span>
-<span class="k">end</span>
+<p>And then use rake to publish the cookbook:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>bin/rake publish
 </pre></div>
 
 <h2>
@@ -147,11 +113,7 @@ Global Options:
 <li>Commit your changes (<code>git commit -am 'Add some feature'</code>)</li>
 <li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
 <li>Create new Pull Request</li>
-</ol><p>TODO:</p>
-
-<ul>
-<li>Secure the authentication file</li>
-</ul><h2>
+</ol><h2>
 <a name="see-also" class="anchor" href="#see-also"><span class="octicon octicon-link"></span></a>See Also</h2>
 
 <ul>
@@ -162,8 +124,8 @@ Global Options:
 
 <ul>
 <li>Author: Seth Vargo (<a href="mailto:sethvargo@gmail.com">sethvargo@gmail.com</a>)</li>
-</ul><div class="highlight highlight-text"><pre>Copyright 2013 Seth Vargo &lt;sethvargo@gmail.com&gt;
-Copyright 2013 Opscode, Inc
+</ul><div class="highlight highlight-text"><pre>Copyright 2013-2014 Seth Vargo &lt;sethvargo@gmail.com&gt;
+Copyright 2013-2014 Chef Software, Inc
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -179,11 +141,10 @@ limitations under the License.
 </pre></div>
       </section>
       <footer>
-        <p>This project is maintained by <a href="https://github.com/sethvargo">sethvargo</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
       </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
   </body>
 </html>
