@@ -58,16 +58,15 @@ module Stove
     end
 
     #
-    # The tag version. This is just the current version prefixed with the
-    # letter "v".
+    # The tag version. This is just the current version.
     #
     # @example Tag version for 1.0.0
-    #   cookbook.tag_version #=> "v1.0.0"
+    #   cookbook.tag_version #=> "1.0.0"
     #
     # @return [String]
     #
     def tag_version
-      "v#{version}"
+      "#{version}"
     end
 
     #
